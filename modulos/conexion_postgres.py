@@ -17,14 +17,12 @@ class ConexionPostgres:
         registros = []
         cx = self.connect()
         try:
-            cursor = cx.cursor()
-            try:
-                cursor.execute(sql, parametros)
-                rows = cursor.fetchall()
-                for row in rows:
-                    registros.append(adapter_function(row))
-            finally:
-                cursor.close()
+            with cx:
+                with cx.cursor() as cursor:
+                    cursor.execute(sql, parametros)
+                    rows = cursor.fetchall()
+                    for row in rows:
+                        registros.append(adapter_function(row))
         finally:
             cx.close()
         return registros
@@ -33,14 +31,13 @@ class ConexionPostgres:
         registro = None
         cx = self.connect()
         try:
-            cursor = cx.cursor()
-            try:
-                cursor.execute(sql, parametros)
-                row = cursor.fetchone()
-                if row:
-                    registro = adapter_function(row)
-            finally:
-                cursor.close()
+            with cx:
+                with cx.cursor() as cursor:
+                    cursor.execute(sql, parametros)
+                    row = cursor.fetchone()
+                    if row:
+                        registro = adapter_function(row)
+
         finally:
             cx.close()
         return registro
@@ -48,12 +45,14 @@ class ConexionPostgres:
     def update(self, sql, *parametros):
         cx = self.connect()
         try:
-            cursor = cx.cursor()
-            try:
-                cursor.execute(sql, parametros)
-            finally:
-                cursor.close()
+            with cx:
+                with cx.cursor() as cursor:
+                    cursor.execute(sql, parametros)
+
         finally:
             cx.close()
 
+    @staticmethod
+    def adapter_single_value(row):
+        return row[0]
 
